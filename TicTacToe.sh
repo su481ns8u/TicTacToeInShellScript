@@ -8,7 +8,18 @@ function resetBoard(){
 	do
 		position[$i]=$i
 	done
-	echo -n "Board Reseted !"
+	echo "Board Reseted !"
+}
+
+function toss(){
+	tossRes=$((RANDOM%2))
+	if [ $tossRes -eq 1 ]
+	then
+		echo "Computer Won Toss"
+	else
+		echo "User won toss"
+	fi
 }
 
 resetBoard
+toss

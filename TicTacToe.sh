@@ -6,7 +6,7 @@ declare -a positions
 function resetBoard(){
 	for ((i=0; i<=9; i++))
 	do
-		position[$i]=$i
+		positions[$i]=$i
 	done
 	echo "Board Reseted !"
 }
@@ -43,5 +43,22 @@ function toss(){
 	echo " ";echo "Assigned Symbols";echo "Computer: $compSymbol";echo "User: $userSymbol"
 }
 
+function board(){
+	printf "+-------+-------+-------+\n"
+	printf "|       |       |       |\n"
+	printf "|   ${positions[1]}   |   ${positions[2]}   |   ${positions[3]}   |\n"
+	printf "|       |       |       |\n"
+	printf "+-------+-------+-------+\n"
+	printf "|       |       |       |\n"
+	printf "|   ${positions[4]}   |   ${positions[5]}   |   ${positions[6]}   |\n"
+	printf "|       |       |       |\n"
+	printf "+-------+-------+-------+\n"
+	printf "|       |       |       |\n"
+	printf "|   ${positions[7]}   |   ${positions[8]}   |   ${positions[9]}   |\n"
+	printf "|       |       |       |\n"
+	printf "+-------+-------+-------+\n"
+}
+
 resetBoard
+board
 toss

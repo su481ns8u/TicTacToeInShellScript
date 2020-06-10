@@ -11,7 +11,7 @@ function resetBoard(){
 }
 
 function board(){
-	printf "+-----+-----+-----+\n"
+	printf "\n\n+-----+-----+-----+\n"
 	printf "|     |     |     |\n"
 	printf "|  ${position[1]}  |  ${position[2]}  |  ${position[3]}  |\n"
 	printf "|     |     |     |\n"
@@ -21,10 +21,21 @@ function board(){
         printf "|     |     |     |\n"
         printf "+-----+-----+-----+\n"
         printf "|     |     |     |\n"
-	printf "|  ${position[7]}   |  ${position[8]}  |  ${position[9]}  |\n"
+	printf "|  ${position[7]}  |  ${position[8]}  |  ${position[9]}  |\n"
         printf "|     |     |     |\n"
-        printf "+-----+-----+-----+"
+        printf "+-----+-----+-----+\n\n"
+}
+
+function toss(){
+	tossRes=$((RANDOM%2))
+	if [ $tossRes -eq 1 ]
+	then
+		echo "Computer Won Toss"
+	else
+		echo "User won toss"
+	fi
 }
 
 resetBoard
 board
+toss

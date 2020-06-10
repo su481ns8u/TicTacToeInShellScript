@@ -8,22 +8,7 @@ function resetBoard(){
 	do
 		position[$i]=$i
 	done
-}
-
-function board(){
-	printf "\n\n+-----+-----+-----+\n"
-	printf "|     |     |     |\n"
-	printf "|  ${position[1]}  |  ${position[2]}  |  ${position[3]}  |\n"
-	printf "|     |     |     |\n"
-	printf "+-----+-----+-----+\n"
-        printf "|     |     |     |\n"
-	printf "|  ${position[4]}  |  ${position[5]}  |  ${position[6]}  |\n"
-        printf "|     |     |     |\n"
-        printf "+-----+-----+-----+\n"
-        printf "|     |     |     |\n"
-	printf "|  ${position[7]}  |  ${position[8]}  |  ${position[9]}  |\n"
-        printf "|     |     |     |\n"
-        printf "+-----+-----+-----+\n\n"
+	echo "Board Reseted !"
 }
 
 function toss(){
@@ -37,5 +22,4 @@ function toss(){
 }
 
 resetBoard
-board
 toss

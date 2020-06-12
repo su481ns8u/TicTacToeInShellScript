@@ -153,6 +153,10 @@ function compPlay(){
         fi
         if [[ $posChange == 0 ]]
         then
+                getCenter
+        fi
+        if [[ $posChange == 0 ]]
+        then
                 #choice=$(($(($RANDOM % ${#positions[@]}))))
                 while [[ ${positions[$choice]} == $userSymbol && ${positions[$choice]} == $userSymbol ]]
                 do
@@ -228,13 +232,24 @@ function getCorner(){
                         then
                                 echo $compWinFlag
                                 checkWin
-                                compWinFlag=0
                                 posChange=1
                                 positions[$i]=$compSymbol
+                                compWinFlag=0
                                 break
                         fi
                 fi
         done
+}
+
+function getCenter(){
+        if [[ ${positions[5]} == 5 ]]
+        then
+                checkWin
+                compWinFlag=0
+                posChange=1
+                positions[5]=$compSymbol
+                break
+        fi
 }
 
 play

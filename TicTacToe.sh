@@ -118,9 +118,11 @@ function play(){
 
                 if [[ $compWinFlag == 1 ]]
                 then
+                    board
                     echo "Computer Won !!!"
                 elif [[ $userWinFlag == 1 ]]
                 then
+                    board
                     echo "User Won !!!"
                 fi
         done
@@ -147,14 +149,20 @@ function compPlay(){
         fi
         if [[ $posChange == 0 ]]
         then
-                choice=$(($(($RANDOM % ${#positions[@]}))))
-                while [ $((${positions["$choice"]})) -eq $(($userSymbol)) -o $((${positions["$choice"]})) -eq $(($userSymbol)) ]
+                getCorner
+        fi
+        if [[ $posChange == 0 ]]
+        then
+                #choice=$(($(($RANDOM % ${#positions[@]}))))
+                while [[ ${positions[$choice]} == $userSymbol && ${positions[$choice]} == $userSymbol ]]
                 do
                         choice=$(($(($RANDOM % ${#positions[@]})) + 1))
+                        break
                 done
                 echo "Computer chose $choice"
                 echo "Entered print"
                 positions[$choice]=$compSymbol
+                board
         fi
 }
 
@@ -196,6 +204,7 @@ function checkUserWin(){
                         then
                                 echo "Entered user"
                                 posChange=1
+                                compWinFlag=0
                                 userWinFlag=0
                                 positions[$i]=$compSymbol
                                 break
@@ -205,6 +214,26 @@ function checkUserWin(){
                 fi
         i=$((i+1))
         j=$((j+1))
+        done
+}
+
+function getCorner(){
+        for ((i=1; i<=9; i=$((i+2))))
+        do
+                if [[ $i = 5 ]]
+                then
+                        continue
+                else
+                        if [[ ${positions[$i]} == $i ]]
+                        then
+                                echo $compWinFlag
+                                checkWin
+                                compWinFlag=0
+                                posChange=1
+                                positions[$i]=$compSymbol
+                                break
+                        fi
+                fi
         done
 }
 

@@ -157,16 +157,7 @@ function compPlay(){
         fi
         if [[ $posChange == 0 ]]
         then
-                #choice=$(($(($RANDOM % ${#positions[@]}))))
-                while [[ ${positions[$choice]} == $userSymbol && ${positions[$choice]} == $userSymbol ]]
-                do
-                        choice=$(($(($RANDOM % ${#positions[@]})) + 1))
-                        break
-                done
-                echo "Computer chose $choice"
-                echo "Entered print"
-                positions[$choice]=$compSymbol
-                board
+                getRandom
         fi
 }
 
@@ -250,6 +241,19 @@ function getCenter(){
                 positions[5]=$compSymbol
                 break
         fi
+}
+
+function getRandom(){
+        choice=$(($(($RANDOM % ${#positions[@]}))))
+        while [[ ${positions[$choice]} == $userSymbol && ${positions[$choice]} == $userSymbol ]]
+        do
+                choice=$(($(($RANDOM % ${#positions[@]})) + 1))
+                break
+        done
+        echo "Computer chose $choice"
+        echo "Entered print"
+        positions[$choice]=$compSymbol
+        board
 }
 
 play

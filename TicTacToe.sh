@@ -59,7 +59,7 @@ function whoWon(){
         then
                 compWinFlag=1
         else
-                echo " ";echo "User Won !!!";echo " "
+                userWinFlag=1
         fi
         endFlag=1
 }
@@ -100,6 +100,8 @@ function play(){
         resetBoard
         toss
         endFlag=0
+        compWinFlag=0
+        userWinFlag=0
         while [ $endFlag -ne 1 ]
         do
                 board
@@ -110,7 +112,16 @@ function play(){
                         currPlay=0
                 else
                         compPlay
+                        checkWin
                         currPlay=1
+                fi
+
+                if [[ $compWinFlag == 1 ]]
+                then
+                    echo "Computer Won !!!"
+                elif [[ $userWinFlag == 1 ]]
+                then
+                    echo "User Won !!!"
                 fi
         done
 }
@@ -128,8 +139,13 @@ function userPlay(){
 
 function compPlay(){
         local choice
+        posChange=0
         checkCompWin
-        if [[ $compWinFlag != 1 ]]
+        if [[ $posChange == 0 ]]
+        then
+                checkUserWin
+        fi
+        if [[ $posChange == 0 ]]
         then
                 choice=$(($(($RANDOM % ${#positions[@]}))))
                 while [ $((${positions["$choice"]})) -eq $(($userSymbol)) -o $((${positions["$choice"]})) -eq $(($userSymbol)) ]
@@ -137,27 +153,25 @@ function compPlay(){
                         choice=$(($(($RANDOM % ${#positions[@]})) + 1))
                 done
                 echo "Computer chose $choice"
+                echo "Entered print"
                 positions[$choice]=$compSymbol
-                checkWin
-        fi
-        if [[ $compWinFlag == 1 ]]
-        then
-                echo " ";echo "Computer Won !!!"
         fi
 }
 
 function checkCompWin(){
         i=1
         j=1
-        compWinFlag=0
         while [ $i -le 9 -a $j -le 9 ]
         do
                 if [[ ${positions[$i]} == $i ]]
                 then
                         positions[$i]=$compSymbol
                         checkWin
-                        if [[ $winFlag == 1 ]]
+                        if [[ $compWinFlag == 1 ]]
                         then
+                                echo "Entered Comp"
+                                posChange=1
+                                compWinFlag=0
                                 echo "Computer Chose: $i"
                                 break
                         else
@@ -168,4 +182,30 @@ function checkCompWin(){
         j=$((j+1))
         done
 }
+
+function checkUserWin(){
+        i=1
+        j=1
+        while [ $i -le 9 -a $j -le 9 ]
+        do
+                if [[ ${positions[$i]} == $i ]]
+                then
+                        positions[$i]=$userSymbol
+                        checkWin
+                        if [[ $userWinFlag == 1 ]]
+                        then
+                                echo "Entered user"
+                                posChange=1
+                                userWinFlag=0
+                                positions[$i]=$compSymbol
+                                break
+                        else
+                                positions[$i]=$i
+                        fi
+                fi
+        i=$((i+1))
+        j=$((j+1))
+        done
+}
+
 play

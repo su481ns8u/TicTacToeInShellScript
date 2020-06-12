@@ -57,9 +57,9 @@ function toss(){
 function whoWon(){
         if [ $currPlay -eq 0 ]
         then
-                echo "Computer Won !!!"
+                compWinFlag=1
         else
-                echo "User Won !!!"
+                echo " ";echo "User Won !!!";echo " "
         fi
         endFlag=1
 }
@@ -93,8 +93,6 @@ function checkWin(){
         then
                 echo "The game is tie !!!"
                 endFlag=1
-        else
-                echo "Continue"
         fi
 }
 
@@ -112,7 +110,6 @@ function play(){
                         currPlay=0
                 else
                         compPlay
-                        checkWin
                         currPlay=1
                 fi
         done
@@ -131,13 +128,44 @@ function userPlay(){
 
 function compPlay(){
         local choice
-        choice=$(($(($RANDOM % ${#positions[@]}))))
-        while [ $((${positions["$choice"]})) -eq $(($userSymbol)) -o $((${positions["$choice"]})) -eq $(($userSymbol)) ]
-        do
-                choice=$(($(($RANDOM % ${#positions[@]})) + 1))
-        done
-        echo "Computer chose $choice"
-        positions["$choice"]=$compSymbol
+        checkCompWin
+        if [[ $compWinFlag != 1 ]]
+        then
+                choice=$(($(($RANDOM % ${#positions[@]}))))
+                while [ $((${positions["$choice"]})) -eq $(($userSymbol)) -o $((${positions["$choice"]})) -eq $(($userSymbol)) ]
+                do
+                        choice=$(($(($RANDOM % ${#positions[@]})) + 1))
+                done
+                echo "Computer chose $choice"
+                positions[$choice]=$compSymbol
+                checkWin
+        fi
+        if [[ $compWinFlag == 1 ]]
+        then
+                echo " ";echo "Computer Won !!!"
+        fi
 }
 
+function checkCompWin(){
+        i=1
+        j=1
+        compWinFlag=0
+        while [ $i -le 9 -a $j -le 9 ]
+        do
+                if [[ ${positions[$i]} == $i ]]
+                then
+                        positions[$i]=$compSymbol
+                        checkWin
+                        if [[ $winFlag == 1 ]]
+                        then
+                                echo "Computer Chose: $i"
+                                break
+                        else
+                                positions[$i]=$i
+                        fi
+                fi
+        i=$((i+1))
+        j=$((j+1))
+        done
+}
 play

@@ -1,259 +1,321 @@
-#!/bin/bash -x
+#!/bin/bash
 
-echo "<-+-+-+-Welcome to Tic Tac Toe-+-+-+->"
-
+#ARRAY DECLARATION
 declare -A positions
 
-function resetBoard(){
-        for ((i=1; i<=9; i++))
-        do
-                positions[$i]=$i
-        done
-        echo "Board Reseted !"
-        board
+#VARIABLES
+ARRAY_LIMIT=9
+SYMBOL_1=X
+SYMBOL_2=O
+TOSS_LIM=2
+TOSS_WIN=1
+TOSS_LOSE=0
+COMP_TURN=1
+USER_TURN=2
+START=0
+END=1
+WIN=1
+LOSE=0
+MOVE=1
+STABLE=0
+CENTER=5
+
+#CONSTANTS
+compSymbol=''
+userSymbol=''
+currentTurn=0
+endGameFlag=$START
+compWinFlag=$LOSE
+userWinFlag=$LOSE
+position=$STABLE
+userScore=0
+computerScore=0
+
+#FUNCTION TO RESET BOARD
+function resetBoard() {
+    local i=0
+    for ((i=1; i<=$ARRAY_LIMIT; i++))
+    do
+		positions[$i]=$i
+    done
 }
 
-function board(){
-        printf "+---+---+---+\n"
-        printf "| ${positions[1]} | ${positions[2]} | ${positions[3]} |\n"
-        printf "+---+---+---+\n"
-        printf "| ${positions[4]} | ${positions[5]} | ${positions[6]} |\n"
-        printf "+---+---+---+\n"
-        printf "| ${positions[7]} | ${positions[8]} | ${positions[9]} |\n"
-        printf "+---+---+---+\n"
+#FUNCTION TO DISPLAY BOARD
+function displayBoard(){
+	local i=0
+	printf "\n+---+---+---+\n|"
+	for ((i=1; i<=$ARRAY_LIMIT; i++))
+	do
+		printf " ${positions[$i]} |"
+		if [[ $((i%3)) == 0 ]]
+		then	
+			printf "\n+---+---+---+\n"
+			if [[ $i != 9 ]]
+			then
+				printf "|"
+			fi
+		fi
+	done
 }
 
+#FUNCTION TO TOSS AND CHOOSE SYMBOLS AND DECIDE WHO PLAYS FIRST
 function toss(){
-        tossRes=$((RANDOM%2))
-        if [ $tossRes -eq 1 ]
-        then
-                currPlay=0
-                echo "Computer Won Toss"
-                symbol=$((RANDOM%2))
-                if [ $symbol -eq 1 ]
-                then
-                        compSymbol=X
-                        userSymbol=O
-                else
-                        compSymbol=O
-                        userSymbol=X
-                fi
-        else
-                currPlay=1
-                echo "User won toss"
-                read -p "Enter 1 for 'X' symbol and 2 for 'O' symbol: " symbol
-                if [ $symbol -eq 1 ]
-                then
-                        userSymbol=X
-                        compSymbol=O
-                else
-                        userSymbol=O
-                        compSymbol=X
-                fi
-        fi
-        echo " ";echo "Assigned Symbols";echo "Computer: $compSymbol";echo "User: $userSymbol"
+	local tossResult=$((RANDOM%TOSS_LIM))
+	case $tossResult in
+		$TOSS_WIN)
+			currentTurn=$COMP_TURN
+			printf "\nComputer Won Toss !"
+			compChoice=$((RANDOM%TOSS_LIM))
+			case $compChoice in
+				$TOSS_WIN)
+					compSymbol=$SYMBOL_1
+					userSymbol=$SYMBOL_2
+					;;
+				$TOSS_LOSE)
+					compSymbol=$SYMBOL_2
+					userSymbol=$SYMBOL_1
+					;;
+				esac
+			;;
+		$TOSS_LOSE)
+			currentTurn=$USER_TURN
+			printf "\nUser Won Toss !\n"
+			local flag=0 
+			while [[ $flag == 0 ]]
+			do
+				printf "\nChoose your symbol\n1. X\n2. O\n"
+				read -p "Choice: " choice
+				case $choice in
+					1)
+						userSymbol=$SYMBOL_1
+						compSymbol=$SYMBOL_2
+						flag=1
+						;;
+					2)
+						userSymbol=$SYMBOL_2
+						compSymbol=$SYMBOL_1
+						flag=1
+						;;
+					*)
+						printf "Enter the valid choice !"
+						flag=0
+						;;
+				esac
+			done
+			;;
+	esac
+	printf "\nAssigned Symbols are\nComputer: $compSymbol\nUser:     $userSymbol"
 }
 
-function whoWon(){
-        if [ $currPlay -eq 0 ]
-        then
-                compWinFlag=1
-        else
-                userWinFlag=1
-        fi
-        endFlag=1
+#FUNCTION TO PLAY USER TURN
+function userTurn() {
+	local choice=0
+    read -p "Enter position you want to add $userSymbol: " choice
+    while [[ ${positions[$choice]} != $choice ]]
+    do
+        printf "\nPlace already taken chose another one\n"
+		read -p "Enter position you want to add $userSymbol: " choice
+    done
+    positions[$choice]=$userSymbol
 }
 
+#FUNCTION TO PLAY COMPUTER TURN
+function computerTurn(){
+	position=$STABLE
+	if [[ $position == $STABLE ]]
+	then
+		canWin $compSymbol
+	fi
+	if [[ $position == $STABLE ]]
+	then
+		canWin $userSymbol
+	fi
+	if [[ $position == $STABLE ]]
+	then
+		canCorner
+	fi
+	if [[ $position == $STABLE ]]
+	then
+		canCenter
+	fi
+	if [[ $position == $STABLE ]]
+	then
+		canRemaining
+	fi
+}
+
+#FUNCTION TO CHECK IF ANYONE CAN WIN
+function canWin(){
+	local i=1
+	while [[ $i -le $ARRAY_LIMIT ]]
+	do
+		if [[ ${positions[$i]} == $i ]]
+		then
+			positions[$i]=$1
+			checkWin
+			if [[ $compWinFlag == $WIN ]]
+			then
+				compWinFlag=$LOSE
+				position=$MOVE
+				positions[$i]=$compSymbol
+				endGameFlag=$START
+				printf "\nComputer Choose: $i"
+				break
+			else
+				positions[$i]=$i
+			fi
+		fi
+		i=$((i+1))
+	done
+}
+
+#FUNCTION TO CHECK IF ANY CORNERS ARE AVAILABLE
+function canCorner(){
+	local i=0
+	for ((i=1; i<=$ARRAY_LIMIT; i=i+2))
+	do
+		if [[ $i == $CENTER ]]
+		then
+			continue
+		elif [[ ${positions[$i]} == $i ]]
+		then
+			printf "Computer Chose: $i"
+			position=$MOVE
+			positions[$i]=$compSymbol
+			break
+		fi
+	done
+}
+
+#FUNCTION TO CHECK IF CENTER IS AVAILABLE
+function canCenter(){
+	if [[ ${positions[$CENTER]} == $CENTER ]]
+	then
+		position=$MOVE
+		$positions[$CENTER]=$compSymbol
+		printf "Computer chose: $i"
+	fi
+}
+
+#FUNCTION TO ADD AT ANY POSITION IF NOTHING IS AVAILABLE FROM CORNERS AND CENTER
+function canRemaining(){
+	position=$MOVE
+	local choice=$(($((RANDOM%${#positions[@]}))+1))
+	while [[ ${positions[$choice]} != $choice ]]
+	do
+		choice=$(($((RANDOM%${#positions[@]}))+1))
+	done
+	positions[$choice]=$compSymbol
+	printf "\nComputer chose : $choice"
+}
+
+#FUNCTION TO CHECK WINNING CONDITIONS
 function checkWin(){
-        if [[ ${positions[1]} == ${positions[2]} && ${positions[2]} == ${positions[3]} ]]
-        then
-                whoWon
-        elif [[ ${positions[4]} == ${positions[5]} && ${positions[5]} == ${positions[6]} ]]
-        then
-                whoWon
-        elif [[ ${positions[7]} == ${positions[8]} && ${positions[8]} == ${positions[9]} ]]
-        then
-                whoWon
-        elif [[ ${positions[1]} == ${positions[4]} && ${positions[4]} == ${positions[7]} ]]
-        then
-                whoWon
-        elif [[ ${positions[2]} == ${positions[5]} && ${positions[5]} == ${positions[8]} ]]
-        then
-                whoWon
-        elif [[ ${positions[3]} == ${positions[6]} && ${positions[6]} == ${positions[9]} ]]
-        then
-                whoWon
-        elif [[ ${positions[1]} == ${positions[5]} && ${positions[5]} == ${positions[9]} ]]
-        then
-                whoWon
-        elif [[ ${positions[7]} == ${positions[5]} && ${positions[5]} == ${positions[3]} ]]
-        then
-                whoWon
-        elif [[ ${positions[1]} != 1 && ${positions[2]} != 2 && ${positions[3]} != 3 && ${positions[4]} != 4 && ${positions[5]} != 5 && ${positions[6]} != 6 && ${positions[7]} != 7 && ${positions[8]} != 8 && ${positions[9]} != 9 ]]
-        then
-                echo "The game is tie !!!"
-                endFlag=1
-        fi
+    if [[ ${positions[1]} == ${positions[2]} && ${positions[2]} == ${positions[3]} ]]
+    then
+		whoWon
+    elif [[ ${positions[4]} == ${positions[5]} && ${positions[5]} == ${positions[6]} ]]
+    then
+		whoWon
+	elif [[ ${positions[7]} == ${positions[8]} && ${positions[8]} == ${positions[9]} ]]
+    then
+		whoWon
+    elif [[ ${positions[1]} == ${positions[4]} && ${positions[4]} == ${positions[7]} ]]
+    then
+		whoWon
+	elif [[ ${positions[2]} == ${positions[5]} && ${positions[5]} == ${positions[8]} ]]
+    then
+		whoWon
+	elif [[ ${positions[3]} == ${positions[6]} && ${positions[6]} == ${positions[9]} ]]
+    then
+		whoWon
+    elif [[ ${positions[1]} == ${positions[5]} && ${positions[5]} == ${positions[9]} ]]
+    then
+		whoWon
+    elif [[ ${positions[7]} == ${positions[5]} && ${positions[5]} == ${positions[3]} ]]
+    then
+		whoWon
+    elif [[ ${positions[1]} != 1 && ${positions[2]} != 2 && ${positions[3]} != 3 && ${positions[4]} != 4 && ${positions[5]} != 5 && ${positions[6]} != 6 && ${positions[7]} != 7 && ${positions[8]} != 8 && ${positions[9]} != 9 ]]
+    then
+        printf "\n\nThe game is tie !!!"
+        endGameFlag=1
+    fi
 }
 
-function play(){
-        resetBoard
-        toss
-        endFlag=0
-        compWinFlag=0
-        userWinFlag=0
-        while [ $endFlag -ne 1 ]
-        do
-                board
-                if [ $currPlay -eq 1 ]
-                then
-                        userPlay
-                        checkWin
-                        currPlay=0
-                else
-                        compPlay
-                        checkWin
-                        currPlay=1
-                fi
-
-                if [[ $compWinFlag == 1 ]]
-                then
-                    board
-                    echo "Computer Won !!!"
-                elif [[ $userWinFlag == 1 ]]
-                then
-                    board
-                    echo "User Won !!!"
-                fi
-        done
+#FUNCTION TO CHECK WINNER
+function whoWon() {
+	if [[ $currentTurn == $COMP_TURN ]]
+	then
+		compWinFlag=$WIN
+	elif [[ $currentTurn == $USER_TURN ]]
+	then
+		userWinFlag=$WIN
+	fi
+	endGameFlag=$END
 }
 
-function userPlay(){
-        local choice
-        read -p "Enter position you want to add $userSymbol: " choice
-        while [ $((${positions["$choice"]})) -eq $(($compSymbol)) -o $((${positions["$choice"]})) -eq $(($userSymbol)) ]
-        do
-                echo "Place already taken chose another one"
-                read -p "Enter position you want to add $userSymbol: " choice
-        done
-        positions["$choice"]=$userSymbol
+#FUNCTION TO DISPLAY CURRENT SCORES
+function leaderBoard(){
+	printf "\n+------------+------------+"
+	printf "\n|    User    |  Computer  |"
+	printf "\n+------------+------------+"
+	printf "\n|      $userScore     |      $computerScore     |"
+	printf "\n+------------+------------+\n"
 }
 
-function compPlay(){
-        local choice
-        posChange=0
-        checkCompWin
-        if [[ $posChange == 0 ]]
-        then
-                checkUserWin
-        fi
-        if [[ $posChange == 0 ]]
-        then
-                getCorner
-        fi
-        if [[ $posChange == 0 ]]
-        then
-                getCenter
-        fi
-        if [[ $posChange == 0 ]]
-        then
-                getRandom
-        fi
+#FUNCTION TO START PLAYING GAME
+function playGame() {
+	local flag=0
+	while [[ $flag != 1 ]]
+	do
+		printf "\nEnter your choice\n1. Play Game\n2. Display Leader Board\n3. Exit\n"
+		read -p "Choice: " choice
+		case $choice in
+			1)
+				resetBoard
+				toss
+				compWinFlag=$LOSE
+				userWinFlag=$LOSE
+				endGameFlag=$START
+				while [[ $endGameFlag != $END ]]
+					do
+					displayBoard
+					if [[ $currentTurn == $COMP_TURN ]]
+					then
+						computerTurn
+						checkWin
+						if [[ $endGameFlag == $END && $compWinFlag == $WIN ]]
+						then
+							printf "\n\nComputer Won !!!"
+							computerScore=$((computerScore+1))
+							break
+						fi
+						currentTurn=$USER_TURN
+					elif [[ $currentTurn == $USER_TURN ]]
+					then
+						userTurn
+						checkWin
+						if [[ $endGameFlag == $END && $userWinFlag == $WIN ]]
+						then
+							printf "\n\nUser Won !!!"
+							userScore=$((userScore+1))
+							break
+						fi
+						currentTurn=$COMP_TURN
+					fi
+				done
+				;;
+			2)
+				leaderBoard
+				;;
+			3)
+				flag=1
+				;;
+			*)
+				printf "\nNot a valid choice !!!"
+		esac
+	done
 }
 
-function checkCompWin(){
-        i=1
-        j=1
-        while [ $i -le 9 -a $j -le 9 ]
-        do
-                if [[ ${positions[$i]} == $i ]]
-                then
-                        positions[$i]=$compSymbol
-                        checkWin
-                        if [[ $compWinFlag == 1 ]]
-                        then
-                                echo "Entered Comp"
-                                posChange=1
-                                compWinFlag=0
-                                echo "Computer Chose: $i"
-                                break
-                        else
-                                positions[$i]=$i
-                        fi
-                fi
-        i=$((i+1))
-        j=$((j+1))
-        done
-}
-
-function checkUserWin(){
-        i=1
-        j=1
-        while [ $i -le 9 -a $j -le 9 ]
-        do
-                if [[ ${positions[$i]} == $i ]]
-                then
-                        positions[$i]=$userSymbol
-                        checkWin
-                        if [[ $userWinFlag == 1 ]]
-                        then
-                                echo "Entered user"
-                                posChange=1
-                                compWinFlag=0
-                                userWinFlag=0
-                                positions[$i]=$compSymbol
-                                break
-                        else
-                                positions[$i]=$i
-                        fi
-                fi
-        i=$((i+1))
-        j=$((j+1))
-        done
-}
-
-function getCorner(){
-        for ((i=1; i<=9; i=$((i+2))))
-        do
-                if [[ $i = 5 ]]
-                then
-                        continue
-                else
-                        if [[ ${positions[$i]} == $i ]]
-                        then
-                                echo $compWinFlag
-                                checkWin
-                                posChange=1
-                                positions[$i]=$compSymbol
-                                compWinFlag=0
-                                break
-                        fi
-                fi
-        done
-}
-
-function getCenter(){
-        if [[ ${positions[5]} == 5 ]]
-        then
-                checkWin
-                compWinFlag=0
-                posChange=1
-                positions[5]=$compSymbol
-                break
-        fi
-}
-
-function getRandom(){
-        choice=$(($(($RANDOM % ${#positions[@]}))))
-        while [[ ${positions[$choice]} == $userSymbol && ${positions[$choice]} == $userSymbol ]]
-        do
-                choice=$(($(($RANDOM % ${#positions[@]})) + 1))
-                break
-        done
-        echo "Computer chose $choice"
-        echo "Entered print"
-        positions[$choice]=$compSymbol
-        board
-}
-
-play
+#PLAY GAME HERE
+playGame
